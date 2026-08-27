@@ -103,3 +103,6 @@ netlify functions:invoke sync-cron
   track id or reliable duration.
 - `/api/sync` is unauthenticated but harmless: it only refreshes the mirror of
   data that's already publicly readable.
+- The Spotify app has a **180-day refresh token lifetime**. If syncing starts
+  failing with a token error, re-run `npm run spotify:token` and update
+  `SPOTIFY_REFRESH_TOKEN` in Netlify's env vars.
