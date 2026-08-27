@@ -1,0 +1,10 @@
+# Netlify config — connect the repo under the project's Netlify account later.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback so client-side routes resolve on refresh/deep-link
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
