@@ -64,36 +64,54 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
         <table>
           <thead>
             <tr>
-              <th>Song</th>
+              <th className="index">#</th>
+              <th>Title</th>
               <th>Album</th>
               <th>Genre</th>
               <th>Added by</th>
               <th>Week</th>
-              <th style={{ textAlign: "right" }}>Length</th>
+              <th className="num-head" title="Duration">
+                🕒
+              </th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((song) => {
+            {filtered.map((song, i) => {
               const isRepeat = song.appearances.length > 1;
               return (
                 <tr key={song.track.id}>
+                  <td className="index">{i + 1}</td>
                   <td>
-                    <div className="song-name">
-                      {song.track.spotify_url ? (
-                        <a href={song.track.spotify_url} target="_blank" rel="noreferrer">
-                          {song.track.name}
-                        </a>
+                    <div className="title-cell">
+                      {song.track.album_art ? (
+                        <img
+                          className="album-thumb"
+                          src={song.track.album_art}
+                          alt=""
+                          loading="lazy"
+                        />
                       ) : (
-                        song.track.name
+                        <span className="album-thumb placeholder">♪</span>
                       )}
-                      {isRepeat && (
-                        <span className="dupe-badge">⚠ played {song.appearances.length}×</span>
-                      )}
-                      {!isRepeat && song.crossVersionDupe && (
-                        <span className="dupe-badge">⚠ other version played</span>
-                      )}
+                      <div>
+                        <div className="song-name">
+                          {song.track.spotify_url ? (
+                            <a href={song.track.spotify_url} target="_blank" rel="noreferrer">
+                              {song.track.name}
+                            </a>
+                          ) : (
+                            song.track.name
+                          )}
+                          {isRepeat && (
+                            <span className="dupe-badge">played {song.appearances.length}×</span>
+                          )}
+                          {!isRepeat && song.crossVersionDupe && (
+                            <span className="dupe-badge">other version played</span>
+                          )}
+                        </div>
+                        <div className="song-artist">{song.track.artists}</div>
+                      </div>
                     </div>
-                    <div className="song-artist">{song.track.artists}</div>
                   </td>
                   <td className="album-cell">{song.track.album ?? "—"}</td>
                   <td>
