@@ -38,7 +38,7 @@ if (!tokenRes.ok) {
 const { access_token } = await tokenRes.json();
 console.log("✔ Access token OK\n");
 
-const NAME_RE = /^sunday\s+bangers\b.*?(\d{1,2})\s*\/\s*(\d{1,2})/i;
+const NAME_RE = /^sunday\s+bangers?\b.*?(\d{1,2})\s*\/\s*(\d{1,2})/i;
 let next = "https://api.spotify.com/v1/me/playlists?limit=50";
 const matches = [];
 let total = 0;

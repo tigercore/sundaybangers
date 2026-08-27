@@ -3,7 +3,7 @@ import { getAccessToken, getMyPlaylists, getPlaylistTracks } from "./spotify.ts"
 import { lookupGenre } from "./genres.ts";
 
 // Matches "Sunday Bangers - 23/08" (case-insensitive, tolerant of spacing)
-const PLAYLIST_NAME_RE = /^sunday\s+bangers\b.*?(\d{1,2})\s*\/\s*(\d{1,2})/i;
+const PLAYLIST_NAME_RE = /^sunday\s+bangers?\b.*?(\d{1,2})\s*\/\s*(\d{1,2})/i;
 
 export interface SyncResult {
   playlistsFound: number;
