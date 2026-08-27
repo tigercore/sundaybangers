@@ -264,7 +264,7 @@ a:hover {
   background: var(--green);
   border-radius: 0 4px 4px 0;
   transform-origin: left center;
-  transition: transform 0.6s ease-out;
+  transition: transform 1.4s ease-out;
 }
 /* Equaliser intro: bars bounce out of phase, then settle to true widths */
 .leaderboard.eq .bar {
@@ -273,19 +273,19 @@ a:hover {
 }
 @keyframes eq-bounce {
   0% {
-    transform: scaleX(0.12);
+    transform: scaleX(0.72);
   }
   30% {
-    transform: scaleX(0.85);
-  }
-  55% {
-    transform: scaleX(0.3);
-  }
-  80% {
     transform: scaleX(0.95);
   }
+  55% {
+    transform: scaleX(0.78);
+  }
+  80% {
+    transform: scaleX(1);
+  }
   100% {
-    transform: scaleX(0.18);
+    transform: scaleX(0.7);
   }
 }
 @media (prefers-reduced-motion: reduce) {

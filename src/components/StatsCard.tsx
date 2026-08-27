@@ -141,10 +141,10 @@ function BarList({
 
 export default function StatsCard({ totals, colorFor, songs }: Props) {
   const [tab, setTab] = useState<Tab>("time");
-  // Equaliser intro: bars bounce for the first 4s, then settle to real values
+  // Equaliser intro: bars bounce for the first 3s, then settle to real values
   const [eq, setEq] = useState(true);
   useEffect(() => {
-    const timer = setTimeout(() => setEq(false), 4000);
+    const timer = setTimeout(() => setEq(false), 3000);
     return () => clearTimeout(timer);
   }, []);
   const [visible, setVisible] = useState<Record<Tab, number>>({
