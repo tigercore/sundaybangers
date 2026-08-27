@@ -80,16 +80,17 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>🎵 Sunday Bangers</h1>
-        <span className="spacer" />
-        {data.lastSyncedAt && (
-          <span className="synced-at">
-            Synced {new Date(data.lastSyncedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
-          </span>
-        )}
-        <button className="sync-button" onClick={handleSync} disabled={syncing}>
-          {syncing ? "Syncing…" : "Sync now"}
-        </button>
+        <img className="logo" src="/logo.png" alt="Sunday Bangers" />
+        <div className="header-actions">
+          {data.lastSyncedAt && (
+            <span className="synced-at">
+              Synced {new Date(data.lastSyncedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
+            </span>
+          )}
+          <button className="sync-button" onClick={handleSync} disabled={syncing}>
+            {syncing ? "Syncing…" : "Sync now"}
+          </button>
+        </div>
       </header>
       {syncMessage && <p className="synced-at">{syncMessage}</p>}
       {data.demo && (
