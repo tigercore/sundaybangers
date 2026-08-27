@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "spotify:token": "node scripts/get-refresh-token.mjs",
-    "spotify:check": "node scripts/check-spotify.mjs"
+    "spotify:check": "node scripts/check-spotify.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "sync": "node scripts/run-sync.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
@@ -23,6 +25,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
+    "pg": "^8.23.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
   }

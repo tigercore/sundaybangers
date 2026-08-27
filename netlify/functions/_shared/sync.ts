@@ -9,6 +9,7 @@ export interface SyncResult {
   playlistsSynced: number;
   playlistsSkipped: number; // snapshot unchanged
   tracksUpserted: number;
+  errors: string[]; // playlists that failed (e.g. Spotify 403s one of them)
 }
 
 function getDb() {
@@ -52,6 +53,7 @@ export async function runSync(): Promise<SyncResult> {
     playlistsSynced: 0,
     playlistsSkipped: 0,
     tracksUpserted: 0,
+    errors: [],
   };
 
   for (const playlist of bangers) {
@@ -60,9 +62,18 @@ export async function runSync(): Promise<SyncResult> {
       continue;
     }
 
-    const items = (await getPlaylistTracks(token, playlist.id)).filter(
-      (entry) => entry.item?.id && !entry.is_local, // drop local files / removed tracks
-    );
+    let items;
+    try {
+      items = (await getPlaylistTracks(token, playlist.id)).filter(
+        (entry) => entry.item?.id && !entry.is_local, // drop local files / removed tracks
+      );
+    } catch (err) {
+      // One unreadable playlist shouldn't sink the rest of the sync
+      const message = `${playlist.name}: ${err instanceof Error ? err.message : String(err)}`;
+      console.error("Playlist sync failed —", message);
+      result.errors.push(message);
+      continue;
+    }
 
     // /users/{id} is forbidden for this app tier, so new members are inserted
     // with their raw id as the name; friendly names are set manually in the
