@@ -1,6 +1,26 @@
 import { useMemo, useState } from "react";
-import type { MemberTotal, SongRow } from "../lib/types.ts";
+import type { Member, MemberTotal, SongRow } from "../lib/types.ts";
 import { formatTotalTime } from "../lib/format.ts";
+
+/** Self-hosted Spotify avatar, falling back to a coloured initial. */
+function Avatar({ member, color }: { member: Member; color?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span className="avatar avatar-fallback" style={{ background: color }}>
+        {member.display_name.charAt(0).toUpperCase()}
+      </span>
+    );
+  }
+  return (
+    <img
+      className="avatar"
+      src={`/avatars/${member.id}.jpg`}
+      alt=""
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 type Tab = "time" | "genres" | "artists";
 
@@ -95,10 +115,7 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
           {totals.map(({ member, totalMs, songCount }) => (
             <div style={{ display: "contents" }} key={member.id}>
               <span className="name">
-                <span
-                  className="member-dot"
-                  style={{ background: colorFor.get(member.id) }}
-                />
+                <Avatar member={member} color={colorFor.get(member.id)} />
                 {member.display_name}
               </span>
               <span className="bar-track">
