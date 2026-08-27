@@ -393,6 +393,13 @@ th.sortable.sorted {
   margin-left: 3px;
   font-size: 9px;
 }
+.sort-arrow.dim {
+  opacity: 0.35;
+  font-size: 11px;
+}
+th.sortable:hover .sort-arrow.dim {
+  opacity: 0.8;
+}
 @media (max-width: 520px) {
   .leaderboard .unit {
     display: none;

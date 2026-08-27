@@ -71,8 +71,8 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
       onClick={() => cycleSort(sortKey)}
     >
       {label}
-      <span className="sort-arrow">
-        {sort?.key === sortKey ? (sort.dir === 1 ? "▲" : "▼") : ""}
+      <span className={`sort-arrow${sort?.key === sortKey ? "" : " dim"}`}>
+        {sort?.key === sortKey ? (sort.dir === 1 ? "▲" : "▼") : "⇅"}
       </span>
     </th>
   );
