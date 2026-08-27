@@ -79,8 +79,8 @@ function rank(songs: SongRow[], keyOf: (s: SongRow) => string | null): RankedRow
 /** Per-bar phase offsets so the equaliser intro looks organic. */
 function eqStyle(i: number): CSSProperties {
   return {
-    "--eq-dur": `${0.85 + ((i * 7) % 5) * 0.14}s`,
-    "--eq-delay": `${-(i * 0.23)}s`,
+    "--eq-dur": `${2.6 + ((i * 7) % 5) * 0.18}s`,
+    "--eq-delay": `${-((i * 11) % 7) * 0.12}s`,
   } as CSSProperties;
 }
 
@@ -141,10 +141,10 @@ function BarList({
 
 export default function StatsCard({ totals, colorFor, songs }: Props) {
   const [tab, setTab] = useState<Tab>("time");
-  // Equaliser intro: bars bounce for the first 3s, then settle to real values
+  // Equaliser intro: one-shot ~3s wobble+settle; class removed after it finishes
   const [eq, setEq] = useState(true);
   useEffect(() => {
-    const timer = setTimeout(() => setEq(false), 3000);
+    const timer = setTimeout(() => setEq(false), 4000);
     return () => clearTimeout(timer);
   }, []);
   const [visible, setVisible] = useState<Record<Tab, number>>({
