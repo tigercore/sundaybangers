@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadDashboard, type Dashboard } from "./lib/data.ts";
 import { memberColorMap } from "./lib/memberColor.ts";
 import { formatTotalTime } from "./lib/format.ts";
-import Leaderboard from "./components/Leaderboard.tsx";
+import StatsCard from "./components/StatsCard.tsx";
 import SongTable from "./components/SongTable.tsx";
 
 type LoadState =
@@ -118,7 +118,7 @@ export default function App() {
         </div>
       </div>
 
-      <Leaderboard totals={data.totals} colorFor={colorFor} />
+      <StatsCard totals={data.totals} colorFor={colorFor} songs={data.songs} />
       <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
     </div>
   );
