@@ -121,6 +121,16 @@ export default function App() {
 
       <StatsCard totals={data.totals} colorFor={colorFor} songs={data.songs} />
       <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
+
+      <footer className="footer">
+        <img src="/mini_back.png" alt="Mini drifting warning sign" width={200} />
+        <p>
+          Made by an Idiot © 2026 –{" "}
+          <a href="https://tigercore.co.uk" target="_blank" rel="noreferrer">
+            tigercore.co.uk
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
