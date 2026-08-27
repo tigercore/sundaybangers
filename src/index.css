@@ -263,6 +263,35 @@ a:hover {
   min-width: 2px;
   background: var(--green);
   border-radius: 0 4px 4px 0;
+  transform-origin: left center;
+  transition: transform 0.6s ease-out;
+}
+/* Equaliser intro: bars bounce out of phase, then settle to true widths */
+.leaderboard.eq .bar {
+  animation: eq-bounce var(--eq-dur, 0.8s) ease-in-out infinite alternate;
+  animation-delay: var(--eq-delay, 0s);
+}
+@keyframes eq-bounce {
+  0% {
+    transform: scaleX(0.12);
+  }
+  30% {
+    transform: scaleX(0.85);
+  }
+  55% {
+    transform: scaleX(0.3);
+  }
+  80% {
+    transform: scaleX(0.95);
+  }
+  100% {
+    transform: scaleX(0.18);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard.eq .bar {
+    animation: none;
+  }
 }
 .leaderboard .value {
   font-size: 13px;

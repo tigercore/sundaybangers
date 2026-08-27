@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Member, MemberTotal, SongRow } from "../lib/types.ts";
 import { formatTotalTime, formatTrackTime } from "../lib/format.ts";
 
@@ -76,19 +76,29 @@ function rank(songs: SongRow[], keyOf: (s: SongRow) => string | null): RankedRow
     }));
 }
 
+/** Per-bar phase offsets so the equaliser intro looks organic. */
+function eqStyle(i: number): CSSProperties {
+  return {
+    "--eq-dur": `${0.55 + ((i * 7) % 5) * 0.11}s`,
+    "--eq-delay": `${-(i * 0.23)}s`,
+  } as CSSProperties;
+}
+
 function BarList({
   rows,
   visible,
   onMore,
+  eq,
 }: {
   rows: RankedRow[];
   visible: number;
   onMore: () => void;
+  eq: boolean;
 }) {
   const max = Math.max(1, ...rows.slice(0, 1).map((r) => r.value));
   return (
     <>
-      <div className="leaderboard ranked">
+      <div className={`leaderboard ranked${eq ? " eq" : ""}`}>
         {rows.slice(0, visible).map((row, i) => (
           <div style={{ display: "contents" }} key={row.key}>
             <span className="name">
@@ -100,7 +110,7 @@ function BarList({
             <span className="bar-track">
               <span
                 className="bar"
-                style={{ width: `${(row.value / max) * 100}%` }}
+                style={{ width: `${(row.value / max) * 100}%`, ...eqStyle(i) }}
                 title={`${row.label}: ${row.display}`}
               />
             </span>
@@ -131,6 +141,12 @@ function BarList({
 
 export default function StatsCard({ totals, colorFor, songs }: Props) {
   const [tab, setTab] = useState<Tab>("time");
+  // Equaliser intro: bars bounce for the first 10s, then settle to real values
+  const [eq, setEq] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setEq(false), 10000);
+    return () => clearTimeout(timer);
+  }, []);
   const [visible, setVisible] = useState<Record<Tab, number>>({
     time: PAGE_SIZE,
     genres: PAGE_SIZE,
@@ -182,8 +198,8 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
       {songs.length === 0 ? (
         <p className="empty">No data yet — run a sync.</p>
       ) : tab === "time" ? (
-        <div className="leaderboard">
-          {totals.map(({ member, totalMs, songCount }) => (
+        <div className={`leaderboard${eq ? " eq" : ""}`}>
+          {totals.map(({ member, totalMs, songCount }, i) => (
             <div style={{ display: "contents" }} key={member.id}>
               <span className="name">
                 <Avatar member={member} color={colorFor.get(member.id)} />
@@ -195,6 +211,7 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
                   style={{
                     width: `${(totalMs / maxMs) * 100}%`,
                     background: colorFor.get(member.id),
+                    ...eqStyle(i),
                   }}
                   title={`${member.display_name}: ${formatTotalTime(totalMs)} across ${songCount} song${songCount === 1 ? "" : "s"}`}
                 />
@@ -207,11 +224,11 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
           ))}
         </div>
       ) : tab === "genres" ? (
-        <BarList rows={topGenres} visible={visible.genres} onMore={more("genres")} />
+        <BarList rows={topGenres} visible={visible.genres} onMore={more("genres")} eq={eq} />
       ) : tab === "artists" ? (
-        <BarList rows={topArtists} visible={visible.artists} onMore={more("artists")} />
+        <BarList rows={topArtists} visible={visible.artists} onMore={more("artists")} eq={eq} />
       ) : (
-        <BarList rows={longestSongs} visible={visible.songs} onMore={more("songs")} />
+        <BarList rows={longestSongs} visible={visible.songs} onMore={more("songs")} eq={eq} />
       )}
     </section>
   );
