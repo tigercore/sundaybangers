@@ -6,7 +6,7 @@
 // Re-run whenever someone changes their picture: node scripts/fetch-avatars.mjs
 // (requires: pip3 install pillow — used via python3 for the square crop)
 
-import { readFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
