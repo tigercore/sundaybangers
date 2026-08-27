@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadDashboard, type Dashboard } from "./lib/data.ts";
 import { memberColorMap } from "./lib/memberColor.ts";
-import { formatTotalTime } from "./lib/format.ts";
+import { formatTotalTime, formatTrackTime } from "./lib/format.ts";
 import StatsCard from "./components/StatsCard.tsx";
 import SongTable from "./components/SongTable.tsx";
 
@@ -76,6 +76,10 @@ export default function App() {
   const { data } = state;
   const totalMs = data.totals.reduce((sum, t) => sum + t.totalMs, 0);
   const appearanceCount = data.songs.reduce((sum, s) => sum + s.appearances.length, 0);
+  const avgMs =
+    data.songs.length > 0
+      ? data.songs.reduce((sum, s) => sum + s.track.duration_ms, 0) / data.songs.length
+      : 0;
 
   return (
     <div className="app">
@@ -112,6 +116,10 @@ export default function App() {
         <div className="stat-tile">
           <div className="value">{data.songs.length}</div>
           <div className="label">Unique songs</div>
+        </div>
+        <div className="stat-tile">
+          <div className="value">{formatTrackTime(avgMs)}</div>
+          <div className="label">Average song duration</div>
         </div>
         <div className="stat-tile">
           <div className="value">{formatTotalTime(totalMs)}</div>
