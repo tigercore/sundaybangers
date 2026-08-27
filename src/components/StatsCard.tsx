@@ -31,6 +31,7 @@ interface RankedRow {
   label: string;
   value: number;
   display: string;
+  avg?: string; // average song duration for this group
 }
 
 /** Self-hosted Spotify avatar, falling back to a coloured initial. */
@@ -53,20 +54,25 @@ function Avatar({ member, color }: { member: Member; color?: string }) {
   );
 }
 
-/** Count unique songs by a key, sorted descending. */
+/** Count unique songs by a key (with average duration), sorted descending. */
 function rank(songs: SongRow[], keyOf: (s: SongRow) => string | null): RankedRow[] {
-  const counts = new Map<string, number>();
+  const groups = new Map<string, { count: number; totalMs: number }>();
   for (const song of songs) {
     const key = keyOf(song);
-    if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    if (!key) continue;
+    const group = groups.get(key) ?? { count: 0, totalMs: 0 };
+    group.count += 1;
+    group.totalMs += song.track.duration_ms;
+    groups.set(key, group);
   }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([label, count]) => ({
+  return [...groups.entries()]
+    .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))
+    .map(([label, { count, totalMs }]) => ({
       key: label,
       label,
       value: count,
       display: `${count} songs`,
+      avg: formatTrackTime(totalMs / count),
     }));
 }
 
@@ -102,6 +108,13 @@ function BarList({
               <strong>{row.display.split(" ")[0]}</strong>
               {row.display.includes(" ") && (
                 <span className="unit"> {row.display.split(" ").slice(1).join(" ")}</span>
+              )}
+              {row.avg && (
+                <>
+                  {" · "}
+                  {row.avg}
+                  <span className="unit"> avg</span>
+                </>
               )}
             </span>
           </div>
