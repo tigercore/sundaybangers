@@ -79,7 +79,7 @@ function rank(songs: SongRow[], keyOf: (s: SongRow) => string | null): RankedRow
 /** Per-bar phase offsets so the equaliser intro looks organic. */
 function eqStyle(i: number): CSSProperties {
   return {
-    "--eq-dur": `${0.55 + ((i * 7) % 5) * 0.11}s`,
+    "--eq-dur": `${0.85 + ((i * 7) % 5) * 0.14}s`,
     "--eq-delay": `${-(i * 0.23)}s`,
   } as CSSProperties;
 }

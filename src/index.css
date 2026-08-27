@@ -275,19 +275,19 @@ a:hover {
 }
 @keyframes eq-bounce {
   0% {
-    transform: scaleX(0.72);
+    transform: scaleX(0.9);
   }
   30% {
-    transform: scaleX(0.95);
+    transform: scaleX(0.98);
   }
   55% {
-    transform: scaleX(0.78);
+    transform: scaleX(0.92);
   }
   80% {
     transform: scaleX(1);
   }
   100% {
-    transform: scaleX(0.7);
+    transform: scaleX(0.9);
   }
 }
 @media (prefers-reduced-motion: reduce) {
