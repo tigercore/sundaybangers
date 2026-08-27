@@ -59,7 +59,7 @@ while (next) {
 console.log(`Playlists on the account: ${total}`);
 console.log(`Matching "Sunday Bangers - DD/MM": ${matches.length}\n`);
 for (const p of matches) {
-  console.log(`  • ${p.name}  (${p.tracks.total} tracks)`);
+  console.log(`  • ${p.name}  (${p.tracks?.total ?? "?"} tracks)`);
 }
 if (matches.length === 0) {
   console.log("  None found — check the playlists are saved/followed on this account.");

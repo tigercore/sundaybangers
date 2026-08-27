@@ -1,10 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import {
-  getAccessToken,
-  getMyPlaylists,
-  getPlaylistTracks,
-  getUser,
-} from "./spotify.ts";
+import { getAccessToken, getMyPlaylists, getPlaylistTracks } from "./spotify.ts";
 
 // Matches "Sunday Bangers - 23/08" (case-insensitive, tolerant of spacing)
 const PLAYLIST_NAME_RE = /^sunday\s+bangers\b.*?(\d{1,2})\s*\/\s*(\d{1,2})/i;
@@ -51,7 +46,7 @@ export async function runSync(): Promise<SyncResult> {
   const { data: existing } = await db.from("playlists").select("id, snapshot_id");
   const knownSnapshots = new Map((existing ?? []).map((p) => [p.id, p.snapshot_id]));
 
-  const memberNames = new Map<string, string | null>();
+  const memberIds = new Set<string>();
   const result: SyncResult = {
     playlistsFound: bangers.length,
     playlistsSynced: 0,
@@ -66,37 +61,34 @@ export async function runSync(): Promise<SyncResult> {
     }
 
     const items = (await getPlaylistTracks(token, playlist.id)).filter(
-      (item) => item.track?.id, // drop local files / removed tracks
+      (entry) => entry.item?.id && !entry.is_local, // drop local files / removed tracks
     );
 
-    // Resolve display names for anyone we haven't seen yet
-    for (const item of items) {
-      const userId = item.added_by?.id;
-      if (userId && !memberNames.has(userId)) {
-        try {
-          const user = await getUser(token, userId);
-          memberNames.set(userId, user.display_name);
-        } catch {
-          memberNames.set(userId, null);
-        }
-      }
+    // /users/{id} is forbidden for this app tier, so new members are inserted
+    // with their raw id as the name; friendly names are set manually in the
+    // members table and never overwritten by the sync.
+    for (const entry of items) {
+      const userId = entry.added_by?.id;
+      if (userId) memberIds.add(userId);
     }
 
     const match = playlist.name.match(PLAYLIST_NAME_RE)!;
     const day = Number(match[1]);
     const month = Number(match[2]);
     const earliestAddedAt = items.reduce<string | null>(
-      (min, item) => (min === null || item.added_at < min ? item.added_at : min),
+      (min, entry) => (min === null || entry.added_at < min ? entry.added_at : min),
       null,
     );
 
-    const memberRows = [...memberNames.entries()].map(([id, display_name]) => ({
+    const memberRows = [...memberIds].map((id) => ({
       id,
-      display_name: display_name ?? id,
+      display_name: id,
       updated_at: new Date().toISOString(),
     }));
     if (memberRows.length > 0) {
-      const { error } = await db.from("members").upsert(memberRows);
+      const { error } = await db
+        .from("members")
+        .upsert(memberRows, { onConflict: "id", ignoreDuplicates: true });
       if (error) throw new Error(`members upsert: ${error.message}`);
     }
 
@@ -111,13 +103,13 @@ export async function runSync(): Promise<SyncResult> {
     });
     if (playlistError) throw new Error(`playlists upsert: ${playlistError.message}`);
 
-    const trackRows = items.map((item) => ({
-      id: item.track!.id!,
-      name: item.track!.name,
-      artists: item.track!.artists.map((a) => a.name).join(", "),
-      album: item.track!.album?.name ?? null,
-      duration_ms: item.track!.duration_ms,
-      spotify_url: item.track!.external_urls.spotify ?? null,
+    const trackRows = items.map((entry) => ({
+      id: entry.item!.id!,
+      name: entry.item!.name,
+      artists: entry.item!.artists.map((a) => a.name).join(", "),
+      album: entry.item!.album?.name ?? null,
+      duration_ms: entry.item!.duration_ms,
+      spotify_url: entry.item!.external_urls.spotify ?? null,
     }));
     if (trackRows.length > 0) {
       const { error } = await db.from("tracks").upsert(trackRows, { onConflict: "id" });
@@ -131,12 +123,12 @@ export async function runSync(): Promise<SyncResult> {
       .eq("playlist_id", playlist.id);
     if (deleteError) throw new Error(`playlist_tracks delete: ${deleteError.message}`);
 
-    const linkRows = items.map((item, position) => ({
+    const linkRows = items.map((entry, position) => ({
       playlist_id: playlist.id,
       position,
-      track_id: item.track!.id!,
-      added_by: item.added_by?.id ?? null,
-      added_at: item.added_at,
+      track_id: entry.item!.id!,
+      added_by: entry.added_by?.id ?? null,
+      added_at: entry.added_at,
     }));
     if (linkRows.length > 0) {
       const { error } = await db.from("playlist_tracks").insert(linkRows);

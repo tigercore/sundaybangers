@@ -1,6 +1,12 @@
 // Minimal Spotify Web API client using a long-lived refresh token.
 // Only Ryan's account ever authenticates; everyone else's additions are
-// visible via `added_by` on the collaborative playlist tracks.
+// visible via `added_by` on the playlist items.
+//
+// NOTE: apps created after Spotify's 2025/26 API changes get a revised schema:
+// playlist contents live at /playlists/{id}/items (the old /tracks endpoint
+// returns 403), each entry nests the track under `item` instead of `track`,
+// and /users/{id} lookups are forbidden (so display names are managed
+// manually in the members table).
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const API_BASE = "https://api.spotify.com/v1";
@@ -12,10 +18,11 @@ export interface SpotifyPlaylist {
   external_urls: { spotify: string };
 }
 
-export interface SpotifyPlaylistTrack {
+export interface SpotifyPlaylistItem {
   added_at: string;
   added_by: { id: string } | null;
-  track: {
+  is_local?: boolean;
+  item: {
     id: string | null; // null for local files
     name: string;
     duration_ms: number;
@@ -23,11 +30,6 @@ export interface SpotifyPlaylistTrack {
     artists: { name: string }[];
     external_urls: { spotify?: string };
   } | null;
-}
-
-export interface SpotifyUser {
-  id: string;
-  display_name: string | null;
 }
 
 function env(name: string): string {
@@ -86,24 +88,20 @@ export async function getMyPlaylists(token: string): Promise<SpotifyPlaylist[]> 
   return playlists;
 }
 
-/** All tracks in a playlist, with who added them (paginated). */
+/** All items in a playlist, with who added them (paginated). */
 export async function getPlaylistTracks(
   token: string,
   playlistId: string,
-): Promise<SpotifyPlaylistTrack[]> {
+): Promise<SpotifyPlaylistItem[]> {
   const fields =
-    "items(added_at,added_by.id,track(id,name,duration_ms,album(name),artists(name),external_urls(spotify))),next";
-  const items: SpotifyPlaylistTrack[] = [];
+    "items(added_at,added_by.id,is_local,item(id,name,duration_ms,album(name),artists(name),external_urls(spotify))),next";
+  const items: SpotifyPlaylistItem[] = [];
   let next: string | null =
-    `/playlists/${playlistId}/tracks?limit=100&fields=${encodeURIComponent(fields)}`;
+    `/playlists/${playlistId}/items?limit=100&fields=${encodeURIComponent(fields)}`;
   while (next) {
-    const page: { items: SpotifyPlaylistTrack[]; next: string | null } = await apiGet(token, next);
+    const page: { items: SpotifyPlaylistItem[]; next: string | null } = await apiGet(token, next);
     items.push(...page.items);
     next = page.next ? page.next.replace(API_BASE, "") : null;
   }
   return items;
-}
-
-export async function getUser(token: string, userId: string): Promise<SpotifyUser> {
-  return apiGet<SpotifyUser>(token, `/users/${encodeURIComponent(userId)}`);
 }
