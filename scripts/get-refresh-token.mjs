@@ -9,7 +9,8 @@
 
 import http from "node:http";
 import { exec } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 
 // Tiny .env loader so this script has no dependencies
@@ -77,10 +78,20 @@ const server = http.createServer(async (req, res) => {
   }
 
   res.writeHead(200, { "Content-Type": "text/html" }).end(
-    "<h1>Done ✔</h1><p>You can close this tab — the refresh token is in your terminal.</p>",
+    "<h1>Done ✔</h1><p>You can close this tab — the refresh token has been saved to .env.</p>",
   );
-  console.log("\nYour refresh token (add as SPOTIFY_REFRESH_TOKEN in .env and Netlify):\n");
-  console.log(data.refresh_token + "\n");
+
+  // Save into .env (update the line if present, append otherwise)
+  const envPath = fileURLToPath(new URL("../.env", import.meta.url));
+  const line = `SPOTIFY_REFRESH_TOKEN=${data.refresh_token}`;
+  let env = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
+  env = /^SPOTIFY_REFRESH_TOKEN=.*$/m.test(env)
+    ? env.replace(/^SPOTIFY_REFRESH_TOKEN=.*$/m, line)
+    : env.trimEnd() + "\n" + line + "\n";
+  writeFileSync(envPath, env);
+
+  console.log("\n✔ Refresh token saved to .env as SPOTIFY_REFRESH_TOKEN.");
+  console.log("  (When you set up Netlify, copy it there too.)\n");
   server.close();
   process.exit(0);
 });
