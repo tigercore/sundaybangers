@@ -19,6 +19,7 @@ export interface Track {
   album: string | null;
   duration_ms: number;
   spotify_url: string | null;
+  genre: string | null; // null = not yet resolved, "" = resolved, none found
 }
 
 export interface PlaylistTrack {

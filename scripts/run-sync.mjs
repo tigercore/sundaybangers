@@ -20,6 +20,10 @@ globalThis.Netlify = { env: { get: (name) => process.env[name] } };
 
 const { runSync } = await import("../netlify/functions/_shared/sync.ts");
 const started = Date.now();
-const result = await runSync();
+// --genres-all: resolve every pending genre in one throttled run (backfill)
+const options = process.argv.includes("--genres-all")
+  ? { genreLimit: 999999, genreDelayMs: 3200 }
+  : {};
+const result = await runSync(options);
 console.log(`Sync finished in ${((Date.now() - started) / 1000).toFixed(1)}s:`);
 console.log(JSON.stringify(result, null, 2));

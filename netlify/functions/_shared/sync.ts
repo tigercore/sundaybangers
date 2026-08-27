@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getAccessToken, getMyPlaylists, getPlaylistTracks } from "./spotify.ts";
+import { lookupGenre } from "./genres.ts";
 
 // Matches "Sunday Bangers - 23/08" (case-insensitive, tolerant of spacing)
 const PLAYLIST_NAME_RE = /^sunday\s+bangers\b.*?(\d{1,2})\s*\/\s*(\d{1,2})/i;
@@ -9,7 +10,16 @@ export interface SyncResult {
   playlistsSynced: number;
   playlistsSkipped: number; // snapshot unchanged
   tracksUpserted: number;
+  genresResolved: number;
+  genresPending: number; // tracks still awaiting a genre lookup
   errors: string[]; // playlists that failed (e.g. Spotify 403s one of them)
+}
+
+export interface SyncOptions {
+  /** Max iTunes genre lookups this run (default 15 — keeps function runs fast). */
+  genreLimit?: number;
+  /** Gap between iTunes lookups; ~20 requests/min are tolerated. */
+  genreDelayMs?: number;
 }
 
 function getDb() {
@@ -37,7 +47,7 @@ function resolveWeekDate(day: number, month: number, earliestAddedAt: string | n
   return best ? best.toISOString().slice(0, 10) : null;
 }
 
-export async function runSync(): Promise<SyncResult> {
+export async function runSync(options: SyncOptions = {}): Promise<SyncResult> {
   const db = getDb();
   const token = await getAccessToken();
 
@@ -53,6 +63,8 @@ export async function runSync(): Promise<SyncResult> {
     playlistsSynced: 0,
     playlistsSkipped: 0,
     tracksUpserted: 0,
+    genresResolved: 0,
+    genresPending: 0,
     errors: [],
   };
 
@@ -150,5 +162,42 @@ export async function runSync(): Promise<SyncResult> {
     result.tracksUpserted += trackRows.length;
   }
 
+  await enrichGenres(db, result, options);
   return result;
+}
+
+/**
+ * Resolve genres for tracks that don't have one yet, a bounded batch per run
+ * so the daily sync catches up on new tracks within a day or two.
+ */
+async function enrichGenres(
+  db: ReturnType<typeof getDb>,
+  result: SyncResult,
+  { genreLimit = 15, genreDelayMs = 500 }: SyncOptions,
+): Promise<void> {
+  const { data: pending, error } = await db
+    .from("tracks")
+    .select("id, name, artists")
+    .is("genre", null)
+    .limit(Math.min(genreLimit, 1000));
+  if (error) throw new Error(`genre select: ${error.message}`);
+
+  for (const track of pending ?? []) {
+    const genre = await lookupGenre(track.artists, track.name);
+    if (genre !== null) {
+      const { error: updateError } = await db
+        .from("tracks")
+        .update({ genre })
+        .eq("id", track.id);
+      if (updateError) throw new Error(`genre update: ${updateError.message}`);
+      result.genresResolved++;
+    }
+    await new Promise((r) => setTimeout(r, genreDelayMs));
+  }
+
+  const { count } = await db
+    .from("tracks")
+    .select("id", { count: "exact", head: true })
+    .is("genre", null);
+  result.genresPending = count ?? 0;
 }

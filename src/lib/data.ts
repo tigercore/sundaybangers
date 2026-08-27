@@ -50,7 +50,7 @@ async function fetchRaw(): Promise<RawData> {
   const [playlistsRes, membersRes, tracksRes, linksRes] = await Promise.all([
     supabase.from("playlists").select("id, name, week_label, week_date, spotify_url, synced_at"),
     supabase.from("members").select("id, display_name"),
-    supabase.from("tracks").select("id, name, artists, album, duration_ms, spotify_url"),
+    supabase.from("tracks").select("id, name, artists, album, duration_ms, spotify_url, genre"),
     supabase.from("playlist_tracks").select("playlist_id, position, track_id, added_by, added_at"),
   ]);
   for (const res of [playlistsRes, membersRes, tracksRes, linksRes]) {

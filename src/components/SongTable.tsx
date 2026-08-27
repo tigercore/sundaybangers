@@ -20,7 +20,7 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
       if (week !== "all" && !song.appearances.some((a) => a.playlist.id === week)) return false;
       if (q) {
         const haystack =
-          `${song.track.name} ${song.track.artists} ${song.track.album ?? ""}`.toLowerCase();
+          `${song.track.name} ${song.track.artists} ${song.track.album ?? ""} ${song.track.genre ?? ""}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
@@ -38,7 +38,7 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
         <input
           className="search-input"
           type="search"
-          placeholder="Search song, artist or album…"
+          placeholder="Search song, artist, album or genre…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -65,6 +65,8 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
           <thead>
             <tr>
               <th>Song</th>
+              <th>Album</th>
+              <th>Genre</th>
               <th>Added by</th>
               <th>Week</th>
               <th style={{ textAlign: "right" }}>Length</th>
@@ -92,6 +94,14 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
                       )}
                     </div>
                     <div className="song-artist">{song.track.artists}</div>
+                  </td>
+                  <td className="album-cell">{song.track.album ?? "—"}</td>
+                  <td>
+                    {song.track.genre ? (
+                      <span className="genre-chip">{song.track.genre}</span>
+                    ) : (
+                      <span className="muted-dash">—</span>
+                    )}
                   </td>
                   <td>
                     {song.appearances.map((a, i) => (

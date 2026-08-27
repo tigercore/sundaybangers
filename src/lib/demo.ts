@@ -17,12 +17,12 @@ export const demoPlaylists: Playlist[] = [
 ];
 
 export const demoTracks: Track[] = [
-  { id: "t1", name: "Demo Song One", artists: "The Examples", album: "Sample Album", duration_ms: 214000, spotify_url: null },
-  { id: "t2", name: "Placeholder Anthem", artists: "Mock Data", album: "Fixtures", duration_ms: 187000, spotify_url: null },
-  { id: "t3", name: "Test Pattern", artists: "The Examples", album: "Sample Album", duration_ms: 255000, spotify_url: null },
-  { id: "t4", name: "Demo Song One", artists: "The Examples", album: "Sample Album (Deluxe)", duration_ms: 214000, spotify_url: null },
-  { id: "t5", name: "Stand-In Serenade", artists: "Lorem & Ipsum", album: null, duration_ms: 302000, spotify_url: null },
-  { id: "t6", name: "Repeat Offender", artists: "Mock Data", album: "Fixtures", duration_ms: 198000, spotify_url: null },
+  { id: "t1", name: "Demo Song One", artists: "The Examples", album: "Sample Album", duration_ms: 214000, spotify_url: null, genre: "Electronic" },
+  { id: "t2", name: "Placeholder Anthem", artists: "Mock Data", album: "Fixtures", duration_ms: 187000, spotify_url: null, genre: "Pop" },
+  { id: "t3", name: "Test Pattern", artists: "The Examples", album: "Sample Album", duration_ms: 255000, spotify_url: null, genre: "Rock" },
+  { id: "t4", name: "Demo Song One", artists: "The Examples", album: "Sample Album (Deluxe)", duration_ms: 214000, spotify_url: null, genre: "Electronic" },
+  { id: "t5", name: "Stand-In Serenade", artists: "Lorem & Ipsum", album: null, duration_ms: 302000, spotify_url: null, genre: "" },
+  { id: "t6", name: "Repeat Offender", artists: "Mock Data", album: "Fixtures", duration_ms: 198000, spotify_url: null, genre: null },
 ];
 
 export const demoLinks: PlaylistTrack[] = [
