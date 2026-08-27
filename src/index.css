@@ -264,7 +264,9 @@ a:hover {
   background: var(--green);
   border-radius: 0 4px 4px 0;
   transform-origin: left center;
-  transition: transform 1.4s ease-out;
+  /* settle from the equaliser intro: long, symmetric ease so the handover
+     from mid-bounce doesn't jerk */
+  transition: transform 2.6s cubic-bezier(0.45, 0.05, 0.15, 1);
 }
 /* Equaliser intro: bars bounce out of phase, then settle to true widths */
 .leaderboard.eq .bar {
