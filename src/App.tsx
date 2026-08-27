@@ -123,7 +123,7 @@ export default function App() {
       <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
 
       <footer className="footer">
-        <img src="/mini_back.png" alt="Mini drifting warning sign" width={200} />
+        <img src="/mini_front.png" alt="Mini warning sign" width={150} />
         <p>
           Made by an Idiot © 2026 –{" "}
           <a href="https://tigercore.co.uk" target="_blank" rel="noreferrer">
