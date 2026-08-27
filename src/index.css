@@ -228,6 +228,27 @@ a:hover {
   min-width: 18px;
   text-align: right;
 }
+.leaderboard .name .label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: min(360px, 38vw);
+}
+.load-more {
+  margin-top: 14px;
+  border: 1px solid var(--baseline);
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: 500px;
+  padding: 7px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.load-more:hover {
+  border-color: var(--text-primary);
+}
 .leaderboard .bar-track {
   height: 22px;
   display: flex;

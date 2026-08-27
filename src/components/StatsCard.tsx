@@ -1,6 +1,37 @@
 import { useMemo, useState } from "react";
 import type { Member, MemberTotal, SongRow } from "../lib/types.ts";
-import { formatTotalTime } from "../lib/format.ts";
+import { formatTotalTime, formatTrackTime } from "../lib/format.ts";
+
+type Tab = "time" | "genres" | "artists" | "songs";
+
+interface Props {
+  totals: MemberTotal[];
+  colorFor: Map<string, string>;
+  songs: SongRow[];
+}
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "time", label: "Song time" },
+  { id: "genres", label: "Top genres" },
+  { id: "artists", label: "Top artists" },
+  { id: "songs", label: "Longest songs" },
+];
+
+const SUBTITLES: Record<Tab, string> = {
+  time: "Across every week, based on who added each track",
+  genres: "Unique songs per genre, across every week",
+  artists: "Unique songs per artist (primary artist credit)",
+  songs: "The longest bangers ever submitted",
+};
+
+const PAGE_SIZE = 10;
+
+interface RankedRow {
+  key: string;
+  label: string;
+  value: number;
+  display: string;
+}
 
 /** Self-hosted Spotify avatar, falling back to a coloured initial. */
 function Avatar({ member, color }: { member: Member; color?: string }) {
@@ -22,68 +53,93 @@ function Avatar({ member, color }: { member: Member; color?: string }) {
   );
 }
 
-type Tab = "time" | "genres" | "artists";
-
-interface Props {
-  totals: MemberTotal[];
-  colorFor: Map<string, string>;
-  songs: SongRow[];
-}
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "time", label: "Song time" },
-  { id: "genres", label: "Top genres" },
-  { id: "artists", label: "Top artists" },
-];
-
-const SUBTITLES: Record<Tab, string> = {
-  time: "Across every week, based on who added each track",
-  genres: "Unique songs per genre, across every week",
-  artists: "Unique songs per artist (primary artist credit)",
-};
-
-/** Count unique songs by a key, descending, top n. */
-function rank(songs: SongRow[], keyOf: (s: SongRow) => string | null, n: number) {
+/** Count unique songs by a key, sorted descending. */
+function rank(songs: SongRow[], keyOf: (s: SongRow) => string | null): RankedRow[] {
   const counts = new Map<string, number>();
   for (const song of songs) {
     const key = keyOf(song);
     if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
   }
-  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, n);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([label, count]) => ({
+      key: label,
+      label,
+      value: count,
+      display: `${count} songs`,
+    }));
 }
 
-function BarList({ rows, unit }: { rows: [string, number][]; unit: string }) {
-  const max = Math.max(1, ...rows.map(([, count]) => count));
+function BarList({
+  rows,
+  visible,
+  onMore,
+}: {
+  rows: RankedRow[];
+  visible: number;
+  onMore: () => void;
+}) {
+  const max = Math.max(1, ...rows.slice(0, 1).map((r) => r.value));
   return (
-    <div className="leaderboard ranked">
-      {rows.map(([label, count], i) => (
-        <div style={{ display: "contents" }} key={label}>
-          <span className="name">
-            <span className="rank">{i + 1}</span>
-            {label}
-          </span>
-          <span className="bar-track">
-            <span
-              className="bar"
-              style={{ width: `${(count / max) * 100}%` }}
-              title={`${label}: ${count} ${unit}`}
-            />
-          </span>
-          <span className="value">
-            <strong>{count}</strong> {unit}
-          </span>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="leaderboard ranked">
+        {rows.slice(0, visible).map((row, i) => (
+          <div style={{ display: "contents" }} key={row.key}>
+            <span className="name">
+              <span className="rank">{i + 1}</span>
+              <span className="label" title={row.label}>
+                {row.label}
+              </span>
+            </span>
+            <span className="bar-track">
+              <span
+                className="bar"
+                style={{ width: `${(row.value / max) * 100}%` }}
+                title={`${row.label}: ${row.display}`}
+              />
+            </span>
+            <span className="value">
+              <strong>{row.display.split(" ")[0]}</strong>
+              {row.display.includes(" ") ? ` ${row.display.split(" ").slice(1).join(" ")}` : ""}
+            </span>
+          </div>
+        ))}
+      </div>
+      {visible < rows.length && (
+        <button className="load-more" onClick={onMore}>
+          Load more
+        </button>
+      )}
+    </>
   );
 }
 
 export default function StatsCard({ totals, colorFor, songs }: Props) {
   const [tab, setTab] = useState<Tab>("time");
+  const [visible, setVisible] = useState<Record<Tab, number>>({
+    time: PAGE_SIZE,
+    genres: PAGE_SIZE,
+    artists: PAGE_SIZE,
+    songs: PAGE_SIZE,
+  });
+  const more = (id: Tab) => () =>
+    setVisible((v) => ({ ...v, [id]: v[id] + PAGE_SIZE }));
 
-  const topGenres = useMemo(() => rank(songs, (s) => s.track.genre || null, 10), [songs]);
+  const topGenres = useMemo(() => rank(songs, (s) => s.track.genre || null), [songs]);
   const topArtists = useMemo(
-    () => rank(songs, (s) => s.track.artists.split(",")[0]?.trim() || null, 10),
+    () => rank(songs, (s) => s.track.artists.split(",")[0]?.trim() || null),
+    [songs],
+  );
+  const longestSongs = useMemo(
+    () =>
+      [...songs]
+        .sort((a, b) => b.track.duration_ms - a.track.duration_ms)
+        .map((s) => ({
+          key: s.track.id,
+          label: `${s.track.name} — ${s.track.artists}`,
+          value: s.track.duration_ms,
+          display: formatTrackTime(s.track.duration_ms),
+        })),
     [songs],
   );
   const maxMs = Math.max(1, ...totals.map((t) => t.totalMs));
@@ -121,7 +177,10 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
               <span className="bar-track">
                 <span
                   className="bar"
-                  style={{ width: `${(totalMs / maxMs) * 100}%` }}
+                  style={{
+                    width: `${(totalMs / maxMs) * 100}%`,
+                    background: colorFor.get(member.id),
+                  }}
                   title={`${member.display_name}: ${formatTotalTime(totalMs)} across ${songCount} song${songCount === 1 ? "" : "s"}`}
                 />
               </span>
@@ -133,9 +192,11 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
           ))}
         </div>
       ) : tab === "genres" ? (
-        <BarList rows={topGenres} unit="songs" />
+        <BarList rows={topGenres} visible={visible.genres} onMore={more("genres")} />
+      ) : tab === "artists" ? (
+        <BarList rows={topArtists} visible={visible.artists} onMore={more("artists")} />
       ) : (
-        <BarList rows={topArtists} unit="songs" />
+        <BarList rows={longestSongs} visible={visible.songs} onMore={more("songs")} />
       )}
     </section>
   );
