@@ -100,7 +100,9 @@ function BarList({
             </span>
             <span className="value">
               <strong>{row.display.split(" ")[0]}</strong>
-              {row.display.includes(" ") ? ` ${row.display.split(" ").slice(1).join(" ")}` : ""}
+              {row.display.includes(" ") && (
+                <span className="unit"> {row.display.split(" ").slice(1).join(" ")}</span>
+              )}
             </span>
           </div>
         ))}
@@ -185,8 +187,8 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
                 />
               </span>
               <span className="value">
-                <strong>{formatTotalTime(totalMs)}</strong> · {songCount} song
-                {songCount === 1 ? "" : "s"}
+                <strong>{formatTotalTime(totalMs)}</strong> · {songCount}
+                <span className="unit"> song{songCount === 1 ? "" : "s"}</span>
               </span>
             </div>
           ))}

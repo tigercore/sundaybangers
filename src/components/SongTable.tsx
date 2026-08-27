@@ -8,14 +8,32 @@ interface Props {
   colorFor: Map<string, string>;
 }
 
+type SortKey = "title" | "album" | "genre" | "addedBy" | "week" | "length";
+
+const SORT_VALUE: Record<SortKey, (s: SongRow) => string | number> = {
+  title: (s) => s.track.name.toLowerCase(),
+  album: (s) => (s.track.album ?? "").toLowerCase(),
+  genre: (s) => (s.track.genre ?? "").toLowerCase(),
+  addedBy: (s) => (s.appearances[0]?.addedBy?.display_name ?? "").toLowerCase(),
+  week: (s) => s.appearances[0]?.playlist.week_date ?? "",
+  length: (s) => s.track.duration_ms,
+};
+
 export default function SongTable({ songs, playlists, colorFor }: Props) {
   const [query, setQuery] = useState("");
   const [week, setWeek] = useState("all");
   const [dupesOnly, setDupesOnly] = useState(false);
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
+
+  // asc -> desc -> back to default order
+  const cycleSort = (key: SortKey) =>
+    setSort((s) =>
+      s?.key !== key ? { key, dir: 1 } : s.dir === 1 ? { key, dir: -1 } : null,
+    );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return songs.filter((song) => {
+    const rows = songs.filter((song) => {
       if (dupesOnly && song.appearances.length < 2 && !song.crossVersionDupe) return false;
       if (week !== "all" && !song.appearances.some((a) => a.playlist.id === week)) return false;
       if (q) {
@@ -25,7 +43,39 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
       }
       return true;
     });
-  }, [songs, query, week, dupesOnly]);
+    if (sort) {
+      const value = SORT_VALUE[sort.key];
+      rows.sort((a, b) => {
+        const va = value(a);
+        const vb = value(b);
+        return (va < vb ? -1 : va > vb ? 1 : 0) * sort.dir;
+      });
+    }
+    return rows;
+  }, [songs, query, week, dupesOnly, sort]);
+
+  const SortableTh = ({
+    label,
+    sortKey,
+    className,
+    title,
+  }: {
+    label: string;
+    sortKey: SortKey;
+    className?: string;
+    title?: string;
+  }) => (
+    <th
+      className={`sortable${className ? ` ${className}` : ""}${sort?.key === sortKey ? " sorted" : ""}`}
+      title={title}
+      onClick={() => cycleSort(sortKey)}
+    >
+      {label}
+      <span className="sort-arrow">
+        {sort?.key === sortKey ? (sort.dir === 1 ? "▲" : "▼") : ""}
+      </span>
+    </th>
+  );
 
   return (
     <section className="card">
@@ -65,14 +115,12 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
           <thead>
             <tr>
               <th className="index">#</th>
-              <th>Title</th>
-              <th>Album</th>
-              <th>Genre</th>
-              <th>Added by</th>
-              <th>Week</th>
-              <th className="num-head" title="Duration">
-                🕒
-              </th>
+              <SortableTh label="Title" sortKey="title" />
+              <SortableTh label="Album" sortKey="album" />
+              <SortableTh label="Genre" sortKey="genre" />
+              <SortableTh label="Added by" sortKey="addedBy" />
+              <SortableTh label="Week" sortKey="week" />
+              <SortableTh label="🕒" sortKey="length" className="num-head" title="Duration" />
             </tr>
           </thead>
           <tbody>

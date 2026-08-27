@@ -379,6 +379,25 @@ td.num {
 th.num-head {
   text-align: right;
 }
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+th.sortable:hover,
+th.sortable.sorted {
+  color: var(--text-primary);
+}
+.sort-arrow {
+  display: inline-block;
+  min-width: 14px;
+  margin-left: 3px;
+  font-size: 9px;
+}
+@media (max-width: 520px) {
+  .leaderboard .unit {
+    display: none;
+  }
+}
 .title-cell {
   display: flex;
   align-items: center;
