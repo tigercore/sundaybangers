@@ -548,6 +548,20 @@ th.sortable:hover .sort-arrow.dim {
   width: min(220px, 60vw);
   height: auto;
   flex-shrink: 0;
+  overflow: visible;
+}
+.pie path {
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  transform-origin: 100px 100px;
+  cursor: pointer;
+}
+.pie path.hovered {
+  transform: scale(1.05);
+}
+.pie path.dimmed {
+  opacity: 0.35;
 }
 .pie-legend {
   list-style: none;
@@ -563,6 +577,14 @@ th.sortable:hover .sort-arrow.dim {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 3px 8px;
+  margin: -3px -8px;
+  border-radius: 6px;
+  cursor: default;
+  transition: background 0.15s ease;
+}
+.pie-legend li.hovered {
+  background: var(--row-hover);
 }
 .pie-label {
   min-width: 64px;
