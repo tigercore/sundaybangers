@@ -18,6 +18,7 @@ export interface Track {
   artists: string;
   album: string | null;
   album_art: string | null;
+  release_date: string | null; // "YYYY" | "YYYY-MM" | "YYYY-MM-DD" (album date)
   duration_ms: number;
   spotify_url: string | null;
   genre: string | null; // null = not yet resolved, "" = resolved, none found

@@ -26,7 +26,7 @@ export interface SpotifyPlaylistItem {
     id: string | null; // null for local files
     name: string;
     duration_ms: number;
-    album: { name: string; images?: { url: string; width: number }[] } | null;
+    album: { name: string; release_date?: string; images?: { url: string; width: number }[] } | null;
     artists: { name: string }[];
     external_urls: { spotify?: string };
   } | null;
@@ -94,7 +94,7 @@ export async function getPlaylistTracks(
   playlistId: string,
 ): Promise<SpotifyPlaylistItem[]> {
   const fields =
-    "items(added_at,added_by.id,is_local,item(id,name,duration_ms,album(name,images),artists(name),external_urls(spotify))),next";
+    "items(added_at,added_by.id,is_local,item(id,name,duration_ms,album(name,images,release_date),artists(name),external_urls(spotify))),next";
   const items: SpotifyPlaylistItem[] = [];
   let next: string | null =
     `/playlists/${playlistId}/items?limit=100&fields=${encodeURIComponent(fields)}`;

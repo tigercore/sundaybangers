@@ -17,12 +17,12 @@ export const demoPlaylists: Playlist[] = [
 ];
 
 export const demoTracks: Track[] = [
-  { id: "t1", name: "Demo Song One", artists: "The Examples", album: "Sample Album", album_art: null, duration_ms: 214000, spotify_url: null, genre: "Electronic" },
-  { id: "t2", name: "Placeholder Anthem", artists: "Mock Data", album: "Fixtures", album_art: null, duration_ms: 187000, spotify_url: null, genre: "Pop" },
-  { id: "t3", name: "Test Pattern", artists: "The Examples", album: "Sample Album", album_art: null, duration_ms: 255000, spotify_url: null, genre: "Rock" },
-  { id: "t4", name: "Demo Song One", artists: "The Examples", album: "Sample Album (Deluxe)", album_art: null, duration_ms: 214000, spotify_url: null, genre: "Electronic" },
-  { id: "t5", name: "Stand-In Serenade", artists: "Lorem & Ipsum", album: null, album_art: null, duration_ms: 302000, spotify_url: null, genre: "" },
-  { id: "t6", name: "Repeat Offender", artists: "Mock Data", album: "Fixtures", album_art: null, duration_ms: 198000, spotify_url: null, genre: null },
+  { id: "t1", name: "Demo Song One", artists: "The Examples", album: "Sample Album", release_date: "2003-09-01", album_art: null, duration_ms: 214000, spotify_url: null, genre: "Electronic" },
+  { id: "t2", name: "Placeholder Anthem", artists: "Mock Data", album: "Fixtures", release_date: "1997", album_art: null, duration_ms: 187000, spotify_url: null, genre: "Pop" },
+  { id: "t3", name: "Test Pattern", artists: "The Examples", album: "Sample Album", release_date: "1994-05-10", album_art: null, duration_ms: 255000, spotify_url: null, genre: "Rock" },
+  { id: "t4", name: "Demo Song One", artists: "The Examples", album: "Sample Album (Deluxe)", release_date: "2013", album_art: null, duration_ms: 214000, spotify_url: null, genre: "Electronic" },
+  { id: "t5", name: "Stand-In Serenade", artists: "Lorem & Ipsum", album: null, release_date: "1987", album_art: null, duration_ms: 302000, spotify_url: null, genre: "" },
+  { id: "t6", name: "Repeat Offender", artists: "Mock Data", album: "Fixtures", release_date: null, album_art: null, duration_ms: 198000, spotify_url: null, genre: null },
 ];
 
 export const demoLinks: PlaylistTrack[] = [

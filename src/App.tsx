@@ -4,6 +4,7 @@ import { memberColorMap } from "./lib/memberColor.ts";
 import { formatTotalTime, formatTrackTime } from "./lib/format.ts";
 import StatsCard from "./components/StatsCard.tsx";
 import SongTable from "./components/SongTable.tsx";
+import DecadeCards from "./components/DecadeCards.tsx";
 
 type LoadState =
   | { status: "loading" }
@@ -129,6 +130,7 @@ export default function App() {
 
       <StatsCard totals={data.totals} colorFor={colorFor} songs={data.songs} />
       <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
+      <DecadeCards songs={data.songs} />
 
       <footer className="footer">
         <img src="/mini_front.png" alt="Mini warning sign" width={150} />

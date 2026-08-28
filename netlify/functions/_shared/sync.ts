@@ -131,6 +131,7 @@ export async function runSync(options: SyncOptions = {}): Promise<SyncResult> {
       name: entry.item!.name,
       artists: entry.item!.artists.map((a) => a.name).join(", "),
       album: entry.item!.album?.name ?? null,
+      release_date: entry.item!.album?.release_date ?? null,
       // smallest image (Spotify orders largest-first) is plenty for a row thumb
       album_art: entry.item!.album?.images?.at(-1)?.url ?? null,
       duration_ms: entry.item!.duration_ms,
