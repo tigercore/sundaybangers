@@ -1,7 +1,7 @@
 import type { Config } from "@netlify/functions";
 import { runSync } from "./_shared/sync.ts";
 
-// Nightly refresh. Songs are added through the week, and the manual
+// Hourly refresh. Songs are added through the week, and the manual
 // "Sync now" button covers anything more urgent.
 export default async () => {
   const result = await runSync();
@@ -9,5 +9,5 @@ export default async () => {
 };
 
 export const config: Config = {
-  schedule: "@daily",
+  schedule: "@hourly",
 };
