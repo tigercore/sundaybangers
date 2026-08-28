@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Member, MemberTotal, SongRow } from "../lib/types.ts";
 import { formatTotalTime, formatTrackTime } from "../lib/format.ts";
 
-type Tab = "time" | "count" | "topgenre" | "genres" | "artists" | "songs";
+type Tab = "time" | "count" | "topgenre" | "topartist" | "genres" | "artists" | "songs";
 
 interface Props {
   totals: MemberTotal[];
@@ -14,6 +14,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "time", label: "Song time" },
   { id: "count", label: "Song count" },
   { id: "topgenre", label: "Top genre" },
+  { id: "topartist", label: "Top artist" },
   { id: "genres", label: "Top genres" },
   { id: "artists", label: "Top artists" },
   { id: "songs", label: "Longest songs" },
@@ -23,6 +24,7 @@ const SUBTITLES: Record<Tab, string> = {
   time: "Across every week, based on who added each track",
   count: "Songs added per member, across every week",
   topgenre: "Each member's most-added genre",
+  topartist: "Each member's most-added artist (primary credit)",
   genres: "Unique songs per genre, across every week",
   artists: "Unique songs per artist (primary artist credit)",
   songs: "The longest bangers ever submitted",
@@ -155,6 +157,7 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
     time: PAGE_SIZE,
     count: PAGE_SIZE,
     topgenre: PAGE_SIZE,
+    topartist: PAGE_SIZE,
     genres: PAGE_SIZE,
     artists: PAGE_SIZE,
     songs: PAGE_SIZE,
@@ -180,32 +183,40 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
     [songs],
   );
   const maxMs = Math.max(1, ...totals.map((t) => t.totalMs));
-  const topGenreByMember = useMemo(() => {
+  const topOfMember = (keyOf: (s: SongRow) => string | null) => {
     const perMember = new Map<string, Map<string, number>>();
     for (const song of songs) {
-      const genre = song.track.genre;
-      if (!genre) continue;
+      const key = keyOf(song);
+      if (!key) continue;
       const credited = new Set(
         song.appearances.map((a) => a.addedBy?.id).filter((id): id is string => !!id),
       );
       for (const id of credited) {
         const counts = perMember.get(id) ?? new Map<string, number>();
-        counts.set(genre, (counts.get(genre) ?? 0) + 1);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
         perMember.set(id, counts);
       }
     }
     return totals
       .map(({ member }) => {
         const counts = perMember.get(member.id);
-        if (!counts) return { member, genre: "—", count: 0 };
-        const [genre, count] = [...counts.entries()].sort(
+        if (!counts) return { member, label: "—", count: 0 };
+        const [label, count] = [...counts.entries()].sort(
           (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
         )[0];
-        return { member, genre, count };
+        return { member, label, count };
       })
       .sort((a, b) => b.count - a.count);
-  }, [songs, totals]);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const topGenreByMember = useMemo(() => topOfMember((s) => s.track.genre || null), [songs, totals]);
+  const topArtistByMember = useMemo(
+    () => topOfMember((s) => s.track.artists.split(",")[0]?.trim() || null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [songs, totals],
+  );
   const maxTopGenre = Math.max(1, ...topGenreByMember.map((t) => t.count));
+  const maxTopArtist = Math.max(1, ...topArtistByMember.map((t) => t.count));
 
   const byCount = useMemo(
     () => [...totals].sort((a, b) => b.songCount - a.songCount || b.totalMs - a.totalMs),
@@ -287,31 +298,33 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
             </div>
           ))}
         </div>
-      ) : tab === "topgenre" ? (
+      ) : tab === "topgenre" || tab === "topartist" ? (
         <div className={`leaderboard${eq ? " eq" : ""}`}>
-          {topGenreByMember.map(({ member, genre, count }, i) => (
-            <div style={{ display: "contents" }} key={member.id}>
-              <span className="name">
-                <Avatar member={member} color={colorFor.get(member.id)} />
-                {member.display_name}
-              </span>
-              <span className="bar-track">
-                <span
-                  className="bar"
-                  style={{
-                    width: `${(count / maxTopGenre) * 100}%`,
-                    background: colorFor.get(member.id),
-                    ...eqStyle(i),
-                  }}
-                  title={`${member.display_name}: ${genre} × ${count}`}
-                />
-              </span>
-              <span className="value">
-                <strong>{genre}</strong> · {count}
-                <span className="unit"> songs</span>
-              </span>
-            </div>
-          ))}
+          {(tab === "topgenre" ? topGenreByMember : topArtistByMember).map(
+            ({ member, label, count }, i) => (
+              <div style={{ display: "contents" }} key={member.id}>
+                <span className="name">
+                  <Avatar member={member} color={colorFor.get(member.id)} />
+                  {member.display_name}
+                </span>
+                <span className="bar-track">
+                  <span
+                    className="bar"
+                    style={{
+                      width: `${(count / (tab === "topgenre" ? maxTopGenre : maxTopArtist)) * 100}%`,
+                      background: colorFor.get(member.id),
+                      ...eqStyle(i),
+                    }}
+                    title={`${member.display_name}: ${label} × ${count}`}
+                  />
+                </span>
+                <span className="value">
+                  <strong>{label}</strong> · {count}
+                  <span className="unit"> songs</span>
+                </span>
+              </div>
+            ),
+          )}
         </div>
       ) : tab === "genres" ? (
         <BarList rows={topGenres} visible={visible.genres} onMore={more("genres")} eq={eq} />
