@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import type { Playlist, SongRow } from "../lib/types.ts";
+import type { Member, Playlist, SongRow } from "../lib/types.ts";
 import { formatTrackTime } from "../lib/format.ts";
 
 interface Props {
   songs: SongRow[];
   playlists: Playlist[];
+  members: Member[];
   colorFor: Map<string, string>;
 }
 
@@ -19,10 +20,21 @@ const SORT_VALUE: Record<SortKey, (s: SongRow) => string | number> = {
   length: (s) => s.track.duration_ms,
 };
 
-export default function SongTable({ songs, playlists, colorFor }: Props) {
+export default function SongTable({ songs, playlists, members, colorFor }: Props) {
   const [query, setQuery] = useState("");
   const [week, setWeek] = useState("all");
+  const [member, setMember] = useState("all");
+  const [genre, setGenre] = useState("all");
   const [dupesOnly, setDupesOnly] = useState(false);
+
+  const genres = useMemo(
+    () => [...new Set(songs.map((s) => s.track.genre).filter(Boolean))].sort() as string[],
+    [songs],
+  );
+  const sortedMembers = useMemo(
+    () => [...members].sort((a, b) => a.display_name.localeCompare(b.display_name)),
+    [members],
+  );
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
 
   // asc -> desc -> back to default order
@@ -36,6 +48,8 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
     const rows = songs.filter((song) => {
       if (dupesOnly && song.appearances.length < 2 && !song.crossVersionDupe) return false;
       if (week !== "all" && !song.appearances.some((a) => a.playlist.id === week)) return false;
+      if (member !== "all" && !song.appearances.some((a) => a.addedBy?.id === member)) return false;
+      if (genre !== "all" && song.track.genre !== genre) return false;
       if (q) {
         const haystack =
           `${song.track.name} ${song.track.artists} ${song.track.album ?? ""} ${song.track.genre ?? ""}`.toLowerCase();
@@ -52,7 +66,7 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
       });
     }
     return rows;
-  }, [songs, query, week, dupesOnly, sort]);
+  }, [songs, query, week, member, genre, dupesOnly, sort]);
 
   const SortableTh = ({
     label,
@@ -97,6 +111,22 @@ export default function SongTable({ songs, playlists, colorFor }: Props) {
           {playlists.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
+            </option>
+          ))}
+        </select>
+        <select className="select" value={member} onChange={(e) => setMember(e.target.value)}>
+          <option value="all">All members</option>
+          {sortedMembers.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.display_name}
+            </option>
+          ))}
+        </select>
+        <select className="select" value={genre} onChange={(e) => setGenre(e.target.value)}>
+          <option value="all">All genres</option>
+          {genres.map((g) => (
+            <option key={g} value={g}>
+              {g}
             </option>
           ))}
         </select>

@@ -130,7 +130,7 @@ export default function App() {
 
       <StatsCard totals={data.totals} colorFor={colorFor} songs={data.songs} />
       <DecadeCards songs={data.songs} />
-      <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
+      <SongTable songs={data.songs} playlists={data.playlists} members={data.members} colorFor={colorFor} />
 
       <footer className="footer">
         <img src="/mini_front.png" alt="Mini warning sign" width={150} />
