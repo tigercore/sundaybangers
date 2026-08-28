@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Member, MemberTotal, SongRow } from "../lib/types.ts";
 import { formatTotalTime, formatTrackTime } from "../lib/format.ts";
+import { heatScale } from "../lib/heat.ts";
 
 type Tab = "time" | "count" | "topgenre" | "topartist" | "genres" | "artists" | "songs";
 
@@ -112,6 +113,8 @@ function BarList({
   eq: boolean;
 }) {
   const max = Math.max(1, ...rows.slice(0, 1).map((r) => r.value));
+  const min = rows.length > 0 ? rows[rows.length - 1].value : 0;
+  const heatFor = heatScale(min, max);
   return (
     <>
       <div className={`leaderboard ranked${eq ? " eq" : ""}`}>
@@ -126,7 +129,11 @@ function BarList({
             <span className="bar-track">
               <span
                 className="bar"
-                style={{ width: `${(row.value / max) * 100}%`, ...eqStyle(i) }}
+                style={{
+                  width: `${(row.value / max) * 100}%`,
+                  background: heatFor(row.value),
+                  ...eqStyle(i),
+                }}
                 title={`${row.label}: ${row.display}`}
               />
             </span>
