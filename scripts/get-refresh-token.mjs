@@ -31,7 +31,7 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 }
 
 const REDIRECT_URI = "http://127.0.0.1:8888/callback";
-const SCOPES = "playlist-read-private playlist-read-collaborative";
+const SCOPES = "playlist-read-private playlist-read-collaborative user-read-recently-played";
 const state = crypto.randomBytes(16).toString("hex");
 
 const authUrl = new URL("https://accounts.spotify.com/authorize");
