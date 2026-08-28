@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Member, MemberTotal, SongRow } from "../lib/types.ts";
 import { formatTotalTime, formatTrackTime } from "../lib/format.ts";
 
-type Tab = "time" | "genres" | "artists" | "songs";
+type Tab = "time" | "count" | "genres" | "artists" | "songs";
 
 interface Props {
   totals: MemberTotal[];
@@ -12,6 +12,7 @@ interface Props {
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "time", label: "Song time" },
+  { id: "count", label: "Song count" },
   { id: "genres", label: "Top genres" },
   { id: "artists", label: "Top artists" },
   { id: "songs", label: "Longest songs" },
@@ -19,6 +20,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 const SUBTITLES: Record<Tab, string> = {
   time: "Across every week, based on who added each track",
+  count: "Songs added per member, across every week",
   genres: "Unique songs per genre, across every week",
   artists: "Unique songs per artist (primary artist credit)",
   songs: "The longest bangers ever submitted",
@@ -149,6 +151,7 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
   }, []);
   const [visible, setVisible] = useState<Record<Tab, number>>({
     time: PAGE_SIZE,
+    count: PAGE_SIZE,
     genres: PAGE_SIZE,
     artists: PAGE_SIZE,
     songs: PAGE_SIZE,
@@ -174,6 +177,11 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
     [songs],
   );
   const maxMs = Math.max(1, ...totals.map((t) => t.totalMs));
+  const byCount = useMemo(
+    () => [...totals].sort((a, b) => b.songCount - a.songCount || b.totalMs - a.totalMs),
+    [totals],
+  );
+  const maxCount = Math.max(1, ...totals.map((t) => t.songCount));
 
   return (
     <section className="card">
@@ -219,6 +227,32 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
               <span className="value">
                 <strong>{formatTotalTime(totalMs)}</strong> · {songCount}
                 <span className="unit"> song{songCount === 1 ? "" : "s"}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : tab === "count" ? (
+        <div className={`leaderboard${eq ? " eq" : ""}`}>
+          {byCount.map(({ member, totalMs, songCount }, i) => (
+            <div style={{ display: "contents" }} key={member.id}>
+              <span className="name">
+                <Avatar member={member} color={colorFor.get(member.id)} />
+                {member.display_name}
+              </span>
+              <span className="bar-track">
+                <span
+                  className="bar"
+                  style={{
+                    width: `${(songCount / maxCount) * 100}%`,
+                    background: colorFor.get(member.id),
+                    ...eqStyle(i),
+                  }}
+                  title={`${member.display_name}: ${songCount} songs (${formatTotalTime(totalMs)})`}
+                />
+              </span>
+              <span className="value">
+                <strong>{songCount}</strong>
+                <span className="unit"> songs</span> · {formatTotalTime(totalMs)}
               </span>
             </div>
           ))}
