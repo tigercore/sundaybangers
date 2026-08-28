@@ -10,14 +10,24 @@ interface Props {
   songs: SongRow[];
 }
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "time", label: "Song time" },
-  { id: "count", label: "Song count" },
-  { id: "topgenre", label: "Top genre" },
-  { id: "topartist", label: "Top artist" },
-  { id: "genres", label: "Top genres" },
-  { id: "artists", label: "Top artists" },
-  { id: "songs", label: "Longest songs" },
+const TAB_GROUPS: { label: string; tabs: { id: Tab; label: string }[] }[] = [
+  {
+    label: "Members",
+    tabs: [
+      { id: "time", label: "Song time" },
+      { id: "count", label: "Song count" },
+      { id: "topgenre", label: "Top genre" },
+      { id: "topartist", label: "Top artist" },
+    ],
+  },
+  {
+    label: "Club",
+    tabs: [
+      { id: "genres", label: "Top genres" },
+      { id: "artists", label: "Top artists" },
+      { id: "songs", label: "Longest songs" },
+    ],
+  },
 ];
 
 const SUBTITLES: Record<Tab, string> = {
@@ -231,15 +241,20 @@ export default function StatsCard({ totals, colorFor, songs }: Props) {
           <h2>Club stats</h2>
           <p className="subtitle">{SUBTITLES[tab]}</p>
         </div>
-        <div className="tab-row">
-          {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              className={`tab${tab === id ? " active" : ""}`}
-              onClick={() => setTab(id)}
-            >
-              {label}
-            </button>
+        <div className="tab-groups">
+          {TAB_GROUPS.map(({ label: groupLabel, tabs }) => (
+            <div className="tab-row" key={groupLabel}>
+              <span className="tab-group-label">{groupLabel}</span>
+              {tabs.map(({ id, label }) => (
+                <button
+                  key={id}
+                  className={`tab${tab === id ? " active" : ""}`}
+                  onClick={() => setTab(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </div>

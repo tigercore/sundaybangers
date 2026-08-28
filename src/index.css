@@ -166,10 +166,29 @@ a:hover {
 .card-head .subtitle {
   margin-bottom: 0;
 }
+.tab-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+@media (max-width: 680px) {
+  .tab-groups {
+    align-items: flex-start;
+  }
+}
 .tab-row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+}
+.tab-group-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-right: 4px;
 }
 .tab {
   border: none;
