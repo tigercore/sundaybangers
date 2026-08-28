@@ -549,6 +549,19 @@ th.sortable:hover .sort-arrow.dim {
   color: var(--text-secondary);
 }
 
+/* ── Loading screen ── */
+.loading-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.loading-screen img {
+  width: min(620px, 92vw);
+  height: auto;
+}
+
 /* ── Status / errors ── */
 .notice {
   background: var(--surface);

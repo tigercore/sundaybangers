@@ -54,8 +54,8 @@ export default function App() {
 
   if (state.status === "loading") {
     return (
-      <div className="app">
-        <p className="notice">Loading…</p>
+      <div className="loading-screen">
+        <img src="/loading.png" alt="Patience! The bangers are loading, bitches!" />
       </div>
     );
   }
