@@ -1,10 +1,18 @@
 import { useMemo } from "react";
 import type { SongRow } from "../lib/types.ts";
 
-// Ordinal green ramp: oldest decade darkest -> newest brightest (Spotify green).
-// The same colour identifies a decade in both cards.
-const RAMP = ["#0b3d20", "#0e5129", "#116634", "#147c3f", "#17934b", "#1aaa55", "#1cc05d", "#1ed760"];
+// Pie slices reuse the member categorical palette (--series-1..8), cycling
+// if there are ever more decades than slots.
 const UNKNOWN_COLOR = "#4a4a47";
+
+// Bar heat: brightest Spotify green for the biggest column, darkest for the
+// smallest, linearly interpolated in between.
+const HEAT_DARK = [10, 56, 30];
+const HEAT_BRIGHT = [30, 215, 96];
+function heat(t: number): string {
+  const ch = HEAT_DARK.map((d, i) => Math.round(d + (HEAT_BRIGHT[i] - d) * t));
+  return `rgb(${ch[0]}, ${ch[1]}, ${ch[2]})`;
+}
 
 interface DecadeStat {
   decade: number; // 1990 for the 1990s
@@ -38,12 +46,12 @@ function useDecades(songs: SongRow[]) {
     }
     const decades: DecadeStat[] = [...byDecade.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([decade, { count, years }], i, all) => {
+      .map(([decade, { count, years }], i) => {
         const [topYear, topYearCount] = [...years.entries()].sort(
           (a, b) => b[1] - a[1] || a[0] - b[0],
         )[0];
-        // spread the ramp across however many decades exist, newest = brightest
-        const color = RAMP[Math.round((i / Math.max(1, all.length - 1)) * (RAMP.length - 1))];
+        // fixed categorical assignment, same scheme as member colours
+        const color = `var(--series-${(i % 8) + 1})`;
         return { decade, count, topYear, topYearCount, color };
       });
     return { decades, unknown };
@@ -71,6 +79,9 @@ export default function DecadeCards({ songs }: { songs: SongRow[] }) {
   ];
   let angle = 0;
   const maxTopYear = Math.max(...decades.map((d) => d.topYearCount));
+  const minTopYear = Math.min(...decades.map((d) => d.topYearCount));
+  const heatFor = (count: number) =>
+    heat(maxTopYear === minTopYear ? 1 : (count - minTopYear) / (maxTopYear - minTopYear));
 
   return (
     <div className="duo-grid">
@@ -120,7 +131,7 @@ export default function DecadeCards({ songs }: { songs: SongRow[] }) {
                 className="col-bar"
                 style={{
                   height: `${Math.max(6, (d.topYearCount / maxTopYear) * 130)}px`,
-                  background: d.color,
+                  background: heatFor(d.topYearCount),
                 }}
               />
               <span className="col-year">{d.topYear}</span>

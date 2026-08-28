@@ -129,8 +129,8 @@ export default function App() {
       </div>
 
       <StatsCard totals={data.totals} colorFor={colorFor} songs={data.songs} />
-      <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
       <DecadeCards songs={data.songs} />
+      <SongTable songs={data.songs} playlists={data.playlists} colorFor={colorFor} />
 
       <footer className="footer">
         <img src="/mini_front.png" alt="Mini warning sign" width={150} />
